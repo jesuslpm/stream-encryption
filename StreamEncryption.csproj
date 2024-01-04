@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+	<PackageReference Include="HKDF.Standard" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="rsa_key_pair.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="test.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
