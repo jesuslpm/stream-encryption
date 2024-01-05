@@ -52,7 +52,7 @@ namespace StreamEncryption
             return aes;
         }
 
-        static byte[] GenerateRadomNumber(int size)
+        static byte[] GenerateRandomNumber(int size)
         {
             using (var generator = RandomNumberGenerator.Create())
             {
@@ -118,9 +118,9 @@ namespace StreamEncryption
 
         private static (byte[] aesikm, byte[] hmacKey) CreateKeys()
         {
-            var ikm = GenerateRadomNumber(IKM_LEN);
-            var salt = GenerateRadomNumber(SALT_LEN);
-            var info = GenerateRadomNumber(INFO_LEN);
+            var ikm = GenerateRandomNumber(IKM_LEN);
+            var salt = GenerateRandomNumber(SALT_LEN);
+            var info = GenerateRandomNumber(INFO_LEN);
             var keys = Hkdf.DeriveKey(HashAlgorithmName.SHA384, ikm, IKM_LEN + HMACK_KEY_LEN, salt, info);
             var aesikm = new byte[IKM_LEN];
             Array.Copy(keys, 0, aesikm, 0, IKM_LEN);
@@ -158,7 +158,7 @@ namespace StreamEncryption
                 {
                     var clearBytesRead = Read(clearSource, clearBuffer, 0, clearBuffer.Length);
                     if (clearBytesRead < clearBuffer.Length) chunkNumber = -chunkNumber;
-                    var salt = GenerateRadomNumber(SALT_LEN);
+                    var salt = GenerateRandomNumber(SALT_LEN);
                     byte[] info = new byte[INFO_LEN];
                     BinaryPrimitives.WriteInt64BigEndian(info, chunkNumber);
                     using (var aes = CreateAesCbc256(aesikm, salt, info))
