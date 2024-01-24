@@ -21,6 +21,9 @@ namespace StreamEncryption
         const int PLAIN_BUFFER_SIZE = 1024 * 64 - 1;
         const int CIPHER_BUFFER_SIZE = PLAIN_BUFFER_SIZE + 1 + MAC_LEN + SALT_LEN + INFO_LEN;
 
+        static readonly byte[] magic = new byte[16] {151, 71, 181, 25, 179, 180, 155, 179, 221, 75, 253, 1, 215, 51, 212, 112};
+        const byte VERSION = 1;
+
         public StreamEncryptor(RSAParameters parameters)
         {
             this.rsa = new RSACng();
@@ -134,6 +137,8 @@ namespace StreamEncryption
             var cipherBuffer = new byte[CIPHER_BUFFER_SIZE];
             var clearBuffer = new byte[PLAIN_BUFFER_SIZE];
             var (aesikm, hmacKey) = CreateKeys();
+            cipherDestination.Write(magic, 0, magic.Length);
+            cipherDestination.WriteByte(VERSION);
             using (var hmac = new HMACSHA384(hmacKey))
             {
                 var header = Concatenate(hmacKey, aesikm);
@@ -206,11 +211,26 @@ namespace StreamEncryption
         public void Decrypt(Stream encryptedSource, Stream clearDestination)
         {
 
-            var cipherMsgLength = this.rsa.KeySize / 8;
+            var magicBuffer = new byte[16];
+            RequiredRead(encryptedSource, magicBuffer);
+            if (magicBuffer.SequenceEqual(magic) == false)
+            {
+                throw new ArgumentException("Source stream is not encrypted using this algorithm", nameof(encryptedSource));
+            }
+            int version = encryptedSource.ReadByte();
+            if (version == -1)
+            {
+                throw new EndOfStreamException("Unexpected end of stream");
+            }
+            if (version == 0 || version > VERSION)
+            {
+                throw new ArgumentException("Invalid algorithm version");
+            }
 
-            var encHeader = new byte[cipherMsgLength];
-            RequiredRead(encryptedSource, encHeader);
-            var header = this.rsa.Decrypt(encHeader, RSAEncryptionPadding.OaepSHA384);
+            var cipherMsgLength = this.rsa.KeySize / 8;
+            var cipherHeader = new byte[cipherMsgLength];
+            RequiredRead(encryptedSource, cipherHeader);
+            var header = this.rsa.Decrypt(cipherHeader, RSAEncryptionPadding.OaepSHA384);
 
             var signedData = new byte[cipherMsgLength];
 

@@ -9,12 +9,22 @@ namespace StreamEncryption
     {
         static void Main(string[] args)
         {
-            
+
             var watch = Stopwatch.StartNew();
             // GenerateRsaKey();
             Encrypt();
             Decrypt();
             Console.WriteLine(watch.Elapsed.ToString());
+        }
+
+        static byte[] GenerateRandomNumber(int size)
+        {
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                var bytes = new byte[size];
+                rng.GetBytes(bytes);
+                return bytes;
+            }
         }
 
         static void GenerateRsaKey()
